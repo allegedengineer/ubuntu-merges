@@ -68,6 +68,8 @@ impl Ls {
             }
             !merges.is_empty()
         });
+        pockets.sort_by(|(a, _), (b, _)| a.cmp(b));
+        pockets.iter_mut().for_each(|(_, p)| p.sort_by(|a, b| a.source_package.cmp(&b.source_package)));
 
         if let [(_, merges)] = &*pockets {
             for merge in merges {
@@ -75,7 +77,7 @@ impl Ls {
                     "{}\t{} {}",
                     merge.source_package,
                     merge.user,
-                    merge.uploader.as_deref().unwrap_or("")
+                    merge.uploader.as_deref().unwrap_or_default()
                 );
             }
         } else if pockets.is_empty() {
@@ -91,7 +93,7 @@ impl Ls {
                         "\t{}\t{} {}",
                         merge.source_package,
                         merge.user,
-                        merge.uploader.as_deref().unwrap_or("???")
+                        merge.uploader.as_deref().unwrap_or_default()
                     );
                 }
             }
