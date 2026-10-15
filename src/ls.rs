@@ -7,6 +7,7 @@ use ubuntu_merges::retry::RequestRetry;
 
 use crate::Args;
 
+/// List merges by pocket.
 #[derive(clap::Parser)]
 pub struct Ls {
     /// String to filter by.
