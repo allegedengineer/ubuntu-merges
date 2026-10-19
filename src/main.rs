@@ -8,6 +8,7 @@ use tracing_subscriber::{Layer, layer::SubscriberExt, util::SubscriberInitExt};
 
 mod grab;
 mod ls;
+mod init;
 
 #[derive(clap::Parser)]
 struct Args {
@@ -21,6 +22,7 @@ struct Args {
 enum Verb {
     Grab(grab::Grab),
     Ls(ls::Ls),
+    Init(init::Init),
 }
 
 fn main() -> eyre::Result<()> {
@@ -39,6 +41,7 @@ fn main() -> eyre::Result<()> {
         match &args.verb {
             Verb::Grab(grab) => grab.run(&args).await,
             Verb::Ls(ls) => ls.run(&args).await,
+            Verb::Init(init) => init.run(&args).await,
         }
     })
 }
