@@ -17,6 +17,7 @@ impl RequestRetry for RequestBuilder {
         let mut wait = Duration::from_secs(2);
         let mut last_err = None;
         for attempt in 1..=tries.get() {
+            let mut fail_fast = false;
             match self
                 .try_clone()
                 .unwrap()
@@ -25,13 +26,20 @@ impl RequestRetry for RequestBuilder {
                 .await
             {
                 Ok(v) if v.status().is_success() || attempt == tries.get() => return Ok(v),
-                Ok(v) => last_err = Some(Report::msg(v.status().to_string())),
+                Ok(v) => {
+                    last_err = Some(Report::msg(v.status().to_string()));
+                    let code = v.status().as_u16();
+                    if (400u16..=499).contains(&code) && code != 429 {
+                        fail_fast = true;
+                    }
+                }
                 Err(e) => last_err = Some(e.into()),
             }
-            if attempt < tries.get() {
+            if attempt < tries.get() || fail_fast {
                 warn!(
-                    "Request failed with: {}\n({attempt}/{tries})",
+                    "Request failed with: {}\n({attempt}/{tries}{})",
                     last_err.as_ref().unwrap(),
+                    fail_fast.then_some(", failing fast").unwrap_or_default()
                 );
             }
             tokio::time::sleep(wait)
