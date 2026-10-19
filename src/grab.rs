@@ -4,7 +4,7 @@ use eyre::{OptionExt, Report};
 use reqwest::Client;
 use tokio::{process::Command, task::JoinSet};
 use tracing::{Instrument, debug_span, error, info, info_span, instrument};
-use ubuntu_merges::retry::RequestRetry;
+use ubuntu_merges::{deb_ftp_dir, retry::RequestRetry};
 
 use crate::Args;
 
@@ -78,14 +78,10 @@ impl Grab {
     }
 
     #[instrument(name = "reporting", skip(self, directory))]
-    async fn fetch_report(&self, directory: &Arc<std::path::PathBuf>) -> Result<String, Report> {
+    pub async fn fetch_report(&self, directory: &Arc<std::path::PathBuf>) -> Result<String, Report> {
         let url = format!(
-            "https://merges.ubuntu.com/{letter}/{package}/REPORT",
-            letter = self
-                .package_name
-                .chars()
-                .next()
-                .ok_or_eyre("Package name is empty")?,
+            "https://merges.ubuntu.com/{group}/{package}/REPORT",
+            group = deb_ftp_dir(&self.package_name),
             package = self.package_name
         );
         let client = Client::new();

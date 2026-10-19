@@ -28,3 +28,11 @@ pub enum UploadedStatus {
     Outstanding,
     New,
 }
+
+/// Given a package name, returns the Debian FTP pool-styled directory name in which to look for it.
+pub fn deb_ftp_dir(package: &str) -> &str {
+    package
+        .split_at_checked(if package.starts_with("lib") { 4 } else { 1 })
+        .unwrap_or_default()
+        .0
+}
